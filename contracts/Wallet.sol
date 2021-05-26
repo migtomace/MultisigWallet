@@ -24,7 +24,7 @@ contract Wallet {
 
     //constructor
     //list of approvers and quorum
-    constructor(address[] _approvers, uint _quorum) public {
+    constructor(address[] memory _approvers, uint _quorum) public {
         approvers = _approvers;
         quorum = _quorum;
     }
@@ -38,22 +38,22 @@ contract Wallet {
     }
 
 
-    function createTransfer(uint amount, address payable to) external onlyApprover {
-        transfers[nextId] = Transfer(
+    function createTransfer(uint amount, address payable to) external onlyApprover() {
+        transfers.push(Transfer(
             transfers.length,
             amount,
             to,
             0,
             false
-        );
+        ));
     }
 
-    function approveTransfer(uint id) external onlyApprover {
+    function approveTransfer(uint id) external onlyApprover() {
         require(transfers[id].sent == false, 'transfer has already been sent.');
         require(approvals[msg.sender][id] == false, 'cannot approve transfer twice.');
 
         approvals[msg.sender][id] = true;
-        transfer[id].approvals++;
+        transfers[id].approvals++;
 
         if(transfers[id].approvals >= quorum){
             transfers[id].sent = true;
@@ -71,9 +71,9 @@ contract Wallet {
             if(approvers[i] == msg.sender) {
                 allowed = true;
             }
-            require(allowed == true, 'only approver allowed');
-            _;
         }
+        require(allowed == true, 'only approver allowed');
+        _;
     }
 
 
